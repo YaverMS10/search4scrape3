@@ -22,9 +22,10 @@ def scrape(features_dict, page):
             bina_results = app.handle_house_search(features_dict)
             headers = list(bina_results[0].keys())
             table = ft.DataTable(columns=[ft.DataColumn(ft.Text(header)) for header in headers],
-                                rows=[ft.DataRow(cells=[ft.DataCell(ft.Text(str(row[key]))) for key in headers]) for row in bina_results])
+                                rows=[ft.DataRow(cells=[ft.DataCell(ft.Text(str(row[key]), height=24)) for key in headers]) for row in bina_results])
             page.add(ft.Text("Bina.az Scraping Results", weight="bold", size=28, color="white"))
-            page.add(table)
+            table_container = ft.Container(content=table, height=300, scroll=ft.ScrollMode.ALWAYS)
+            page.add(table_container)
             page.update()
         except:
             page.add(ft.Text("No Bina.az item found for this filter"))
@@ -38,9 +39,10 @@ def scrape(features_dict, page):
 
             headers = list(tapaz_results[0].keys())
             table = ft.DataTable(columns=[ft.DataColumn(ft.Text(header)) for header in headers],
-                                rows=[ft.DataRow(cells=[ft.DataCell(ft.Text(str(row[key]))) for key in headers]) for row in tapaz_results])
+                                rows=[ft.DataRow(cells=[ft.DataCell(ft.Text(str(row[key]), height = 24)) for key in headers]) for row in tapaz_results])
             page.add(ft.Text("Tap.az Scraping Results", weight="bold", size=28, color="white"))
-            page.add(table)
+            table_container = ft.Container(content=table, height=300, scroll=ft.ScrollMode.ALWAYS)
+            page.add(table_container)
             page.update()
         except:
             page.add(ft.Text("No Tap.az item found for this filter"))
@@ -54,9 +56,10 @@ def scrape(features_dict, page):
             
             headers = list(instagram_results[0].keys())
             table = ft.DataTable(columns=[ft.DataColumn(ft.Text(header)) for header in headers],
-                                rows=[ft.DataRow(cells=[ft.DataCell(ft.Text(str(row[key]))) for key in headers]) for row in instagram_results])
+                                rows=[ft.DataRow(cells=[ft.DataCell(ft.Text(str(row[key]), height = 24)) for key in headers]) for row in instagram_results])
             page.add(ft.Text("Instagram Scraping Results", weight="bold", size=28, color="white"))
-            page.add(table)
+            table_container = ft.Container(content=table, height=300, scroll=ft.ScrollMode.ALWAYS)
+            page.add(table_container)
             page.update()
         except:
             page.add(ft.Text("No Instagram item found for this filter"))
