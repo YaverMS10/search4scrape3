@@ -99,7 +99,7 @@ def scrape(filtered_url):
                 phone_number = None
             return phone_number
         except Exception as e:
-            print(f"An error occurred: {e}")  # Xətanın mesajını çap edin
+            print(f"Ikinci error occurred: {e}")  # Xətanın mesajını çap edin
             return None
 
 
@@ -158,25 +158,17 @@ def scrape(filtered_url):
             time.sleep(2)
 
             # 'show-phones' düyməsini gözləyin və klikləyin
-            try:
                 # Wait until the 'show-phones' button is clickable
-                WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, 'show-phones')))
-                show_phones_button = driver.find_element(By.ID, 'show-phones')
-                show_phones_button.click()
-
-            # Wait for the phone numbers to be displayed
-                WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'phone-numbers__i')))
-            except Exception as e:
-                print(f"Error interacting with the element: {e}")
-                driver.quit()
-                return None
+            WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[contains(text(), '●')]")))
+            element = driver.find_element(By.XPATH, "//span[contains(text(), '●')]")
+            text_content = element.text
 
             # Sayfanın HTML kodunu BeautifulSoup ilə oxuyun
             updated_html = driver.page_source
             link_soup = BeautifulSoup(updated_html, 'html.parser')
 
             # # Məlumatları çıxarın
-            phone_number = extract_owner_number(link_soup)
+            phone_number = text_content
             owner_name = extract_owner_name(link_soup)
             information = extract_information(link_soup)
             price, cur = extract_price(link_soup)
@@ -206,7 +198,7 @@ def scrape(filtered_url):
             return df1
 
         except Exception as e:
-            print(f"An error occurred: {e}")
+            print(f"Birinci error occurred: {e}")
             return None
 
 
@@ -225,22 +217,28 @@ def scrape(filtered_url):
         semaphore = asyncio.Semaphore(5)  # Limit concurrent connections
 
         # Function to process individual items
-        async def process_item(item):
-            async with semaphore:
-                link = 'https://tap.az' + item['href']
-                item_id = item['href'].split('/')[-1]
-                data = await loop.run_in_executor(executor, extract_property_info, link, item_id)
-                if data:
-                    df = pd.DataFrame([data])
-                    df.to_csv("tapaz.csv", sep=',', encoding='utf-8', mode='a', header=False, index=False)
 
         with ThreadPoolExecutor() as executor:
             loop = asyncio.get_event_loop()
+
+            async def process_item(item):
+                async with semaphore:
+                    link = 'https://tap.az' + item['href']
+                    item_id = item['href'].split('/')[-1]
+                    data = await loop.run_in_executor(executor, extract_property_info, link, item_id)
+                    if data:
+                        df = pd.DataFrame([data])
+                        df.to_csv("tapaz.csv", sep=',', encoding='utf-8', mode='a', header=False, index=False)
+                        del df, data
+
+            count_item = 0
+
 
             service = ChromeService(ChromeDriverManager().install(), log_path=os.devnull)
             driver = webdriver.Chrome(service=service, options=chrome_options)
     
             driver.get(filtered_url)
+            time.sleep(2)
 
             # try:
             #     WebDriverWait(driver, 10).until(
@@ -252,43 +250,18 @@ def scrape(filtered_url):
             #     return
             soup = BeautifulSoup(driver.page_source, 'html.parser')
             content = soup.find_all('a', class_='products-link')
+            count_item += len(content)
 
-            # scroll_attempts = 0
-            # max_attempts = 7
-            # last_height = driver.execute_script("return document.body.scrollHeight")
+            driver.quit()
 
-            # last_height = driver.execute_script("return document.body.scrollHeight")
-            # scroll_attempts = 0
-            # max_attempts = 5  # Limit scrolling attempts to detect the end of content
-            #
-            # while True:
-            #     driver.execute_script("window.scrollBy(0, 50);")
-            #     time.sleep(3)  # Longer delay to allow full content to load
-            #
-            #     new_height = driver.execute_script("return document.body.scrollHeight")
-            #
-            #     # Stop scrolling when no new content appears after several attempts
-            #     if new_height == last_height:
-            #         scroll_attempts += 1
-            #         if scroll_attempts >= max_attempts:
-            #             break
-            #     else:
-            #         scroll_attempts = 0  # Reset if new content loads
-            #
-            #     last_height = new_height
-
-            # Parse page source after scrolling
-
-            if len(content) > 10:
-                content = content[:10]
+            if len(content) > 11:
+                content = content[:11]
 
             # Schedule tasks for each product link
             tasks = [process_item(item) for item in content]
             await asyncio.gather(*tasks)
 
-            # Clean up
-            driver.quit()
-            del tasks, soup, driver, service
+            del tasks, soup, driver, content
             gc.collect()
 
     asyncio.run(main())
