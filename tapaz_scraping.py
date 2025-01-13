@@ -159,20 +159,16 @@ def scrape(filtered_url):
 
             # 'show-phones' düyməsini gözləyin və klikləyin
             try:
-                driver.execute_script("document.querySelector('.show-phones').click();")
-                WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'phone-numbers__i')))
+                # Wait until the 'show-phones' button is clickable
+                WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, 'show-phones')))
+                show_phones_button = driver.find_element(By.ID, 'show-phones')
+                show_phones_button.click()
 
-                # print("Waiting for the show button to be clickable.")
-                # WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, 'js-show-phones')))
-                # elements = driver.find_element(By.CLASS_NAME, 'js-show-phones')
-                #
-                # if elements:
-                #     elements.click()
-                #     print("Div clicked successfully.")
-                # else:
-                #     print("Show button not found for this listing.")
+            # Wait for the phone numbers to be displayed
+                WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'phone-numbers__i')))
             except Exception as e:
                 print(f"Error interacting with the element: {e}")
+                driver.quit()
                 return None
 
             # Sayfanın HTML kodunu BeautifulSoup ilə oxuyun
