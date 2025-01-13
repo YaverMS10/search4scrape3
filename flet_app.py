@@ -22,10 +22,9 @@ def scrape(features_dict, page):
             bina_results = app.handle_house_search(features_dict)
             headers = list(bina_results[0].keys())
             table = ft.DataTable(columns=[ft.DataColumn(ft.Text(header)) for header in headers],
-                                rows=[ft.DataRow(cells=[ft.DataCell(ft.Text(str(row[key]), height=24)) for key in headers]) for row in bina_results])
+                                rows=[ft.DataRow(cells=[ft.DataCell(ft.Text(str(row[key]), height=48)) for key in headers]) for row in bina_results])
             page.add(ft.Text("Bina.az Scraping Results", weight="bold", size=28, color="white"))
-            table_container = ft.Container(content=table, height=300, scroll=ft.ScrollMode.ALWAYS)
-            page.add(table_container)
+            page.add(table)
             page.update()
         except:
             page.add(ft.Text("No Bina.az item found for this filter"))
@@ -33,19 +32,19 @@ def scrape(features_dict, page):
     elif features_dict['category'] == 'other':
         try:
             status_text_tapaz = ft.Text("Please wait for Tap.az scraping..", color="blue")
+            
             page.add(status_text_tapaz)
             page.update()
             tapaz_results = app.handle_other_search(features_dict)
 
             headers = list(tapaz_results[0].keys())
             table = ft.DataTable(columns=[ft.DataColumn(ft.Text(header)) for header in headers],
-                                rows=[ft.DataRow(cells=[ft.DataCell(ft.Text(str(row[key]), height = 24)) for key in headers]) for row in tapaz_results])
+                                rows=[ft.DataRow(cells=[ft.DataCell(ft.Text(str(row[key]), height = 48)) for key in headers]) for row in tapaz_results])
             page.add(ft.Text("Tap.az Scraping Results", weight="bold", size=28, color="white"))
-            table_container = ft.Container(content=table, height=300, scroll=ft.ScrollMode.ALWAYS)
-            page.add(table_container)
+            page.add(table)
             page.update()
-        except:
-            page.add(ft.Text("No Tap.az item found for this filter"))
+        except Exception as e:
+            print(e)
 
 
         try:
@@ -56,10 +55,9 @@ def scrape(features_dict, page):
             
             headers = list(instagram_results[0].keys())
             table = ft.DataTable(columns=[ft.DataColumn(ft.Text(header)) for header in headers],
-                                rows=[ft.DataRow(cells=[ft.DataCell(ft.Text(str(row[key]), height = 24)) for key in headers]) for row in instagram_results])
+                                rows=[ft.DataRow(cells=[ft.DataCell(ft.Text(str(row[key]), height = 48)) for key in headers]) for row in instagram_results])
             page.add(ft.Text("Instagram Scraping Results", weight="bold", size=28, color="white"))
-            table_container = ft.Container(content=table, height=300, scroll=ft.ScrollMode.ALWAYS)
-            page.add(table_container)
+            page.add(table)
             page.update()
         except:
             page.add(ft.Text("No Instagram item found for this filter"))
@@ -99,10 +97,13 @@ def button_clicked(e):
 
 def main(page:ft.Page):
     global tb
+    page.scroll = ft.ScrollMode.AUTO
     page.horizontal_alignment = 'center'
     page.vertical_alignment = 'center'
-    tb = ft.TextField(label="Enter Desired Item", hint_text="Enter Desired Item")
+    tb = ft.TextField(label="Enter Desired Item", hint_text="Enter Desired Item", width=500)
     b = ft.ElevatedButton(text="Submit", on_click=button_clicked)
-    page.add(tb, b)
+    container = ft.Container(ft.Column([tb, b]))
+    container.alignment = ft.alignment.bottom_center
+    page.add(container)
 
 ft.app(main, port=8000)
