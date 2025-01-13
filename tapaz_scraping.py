@@ -186,6 +186,7 @@ def scrape(filtered_url):
             lat, lng = extract_location(link_soup)
             driver.quit()
 
+
             df1 = {
                 'item_id': item_id,
                 'title': title,
